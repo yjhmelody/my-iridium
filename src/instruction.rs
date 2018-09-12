@@ -6,9 +6,18 @@ pub enum Opcode {
     HLT,
     /// ADD src1 src2 dst
     ADD,
+    /// SUB src1 src2 dst
     SUB,
+    /// MUL src1 src2 dst
     MUL,
+    /// DIV src1 src2 dst
     DIV,
+    /// Absolute Jumps by using register
+    JMP,
+    /// Relative Jumps for jump forwards
+    JMPF,
+    /// Relative Jumps for jump backwards
+    JMPB,
     /// illegal opcode
     IGL,
 
@@ -25,6 +34,9 @@ impl From<u8> for Opcode {
             3 => MUL,
             4 => DIV,
             5 => HLT,
+            6 => JMP,
+            7 => JMPF,
+            8 => JMPB,
             _ => IGL,
         }
     }
