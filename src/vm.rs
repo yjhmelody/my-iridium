@@ -1,16 +1,21 @@
 use instruction::*;
 
+/// Virtual machine struct that will execute bytecode
 pub struct VM {
+    /// 0-31 registers
     registers: [i32; 32],
+    /// Program counter
     pc: usize,
+    /// Saves the bytecode
     program: Vec<u8>,
-    // for div's remainder
+    /// Contains the remainder of division
     remainder: u32,
-    // for equalty opcode
+    /// Contains the result of the last comparison operation
     equal_flag: bool,
 }
 
 impl VM {
+    /// Creates a vm
     pub fn new() -> Self {
         Self {
             registers: [0; 32],
@@ -21,6 +26,7 @@ impl VM {
         }
     }
 
+    /// Runs the vm with loop
     pub fn run(&mut self) {
         let mut is_done = false;
         while !is_done {
@@ -28,10 +34,12 @@ impl VM {
         }
     }
 
+    /// Runs the vm only one cycle
     pub fn run_once(&mut self) {
         self.excute_instruction();
     }
 
+    /// Executes an instruction and returns a bool
     fn excute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
             return false;
@@ -146,18 +154,21 @@ impl VM {
         true
     }
 
+    /// Decode the byte the VM's program counter is pointing at into an opcode
     fn decode_opcode(&mut self) -> Opcode {
         let opcode = Opcode::from(self.program[self.pc]);
         self.pc += 1;
         opcode
     }
 
+    /// Decode the next byte into an opcode
     fn next_8_bits(&mut self) -> u8 {
         let res = self.program[self.pc];
         self.pc += 1;
         res
     }
 
+    /// Decode the next 2 bytes into an opcode
     fn next_16_bits(&mut self) -> u16 {
         let res = ((self.program[self.pc] as u16) << 8) | (self.program[self.pc + 1] as u16);
         self.pc += 2;

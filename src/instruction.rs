@@ -1,15 +1,15 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
-    /// load opcode
+    /// Load opcode
     LOAD,
 
-    /// ADD src1 src2 dst
+    /// Add src1 src2 dst
     ADD,
-    /// SUB src1 src2 dst
+    /// Sub src1 src2 dst
     SUB,
-    /// MUL src1 src2 dst
+    /// Mul src1 src2 dst
     MUL,
-    /// DIV src1 src2 dst
+    /// Div src1 src2 dst
     DIV,
     /// Absolute Jumps by using register
     JMP,
@@ -18,7 +18,7 @@ pub enum Opcode {
     /// Relative Jumps for jump backwards
     JMPB,
 
-    /// halt the vm
+    /// Halt the vm
     HLT,
 
     EQ,
@@ -29,11 +29,11 @@ pub enum Opcode {
     LTE,
     JMPE,
 
-    /// illegal opcode
+    /// Illegal opcode
     IGL,
 }
 
-/// convert u8 to an opcode
+/// Converts from a u8 to an Opcode
 impl From<u8> for Opcode {
     fn from(v: u8) -> Self {
         use self::Opcode::*;
