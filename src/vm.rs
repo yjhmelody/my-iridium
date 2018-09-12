@@ -42,12 +42,13 @@ impl VM {
     /// Executes an instruction and returns a bool
     fn excute_instruction(&mut self) -> bool {
         if self.pc >= self.program.len() {
-            return false;
+            return true;
         }
 
         match self.decode_opcode() {
             Opcode::HLT => {
                 println!("HLT encountered");
+                return true;
             }
 
             Opcode::LOAD => {
@@ -148,10 +149,10 @@ impl VM {
 
             _ => {
                 println!("Unrecognized opcode found! Terminating!");
-                return false;
+                return true;
             }
         }
-        true
+        false
     }
 
     /// Decodes the byte the VM's program counter is pointing at into an opcode
@@ -194,6 +195,22 @@ mod tests {
         assert_eq!(vm.registers[0], 0);
         assert_eq!(vm.pc, 0);
         assert_eq!(vm.program, Vec::new());
+    }
+
+    #[test]
+    fn run_vm() {
+        let mut vm = get_test_vm();
+        vm.program = vec![1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+        vm.run();
+        assert_eq!(vm.registers[0], 5 + 10 * 3);
+    }
+
+    #[test]
+    fn run_once_vm() {
+        let mut vm = get_test_vm();
+        vm.program = vec![1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+        vm.run_once();
+        assert_eq!(vm.registers[0], 5 + 10 * 1);
     }
 
     #[test]
