@@ -21,12 +21,19 @@ pub enum Opcode {
     /// Halt the vm
     HLT,
 
+    /// If src1 == src2 then set true
     EQ,
+    /// If src1 != src2 then set true
     NEQ,
+    /// If src1 > src2 then set true
     GT,
+    /// If src1 < src2 then set true
     LT,
+    /// If src1 >= src2 then set true
     GTE,
+    /// If src1 <= src2 then set true
     LTE,
+    /// If equaly_bool(A special register for storing last equality result) == true then jmp
     JMPE,
 
     /// Illegal opcode
@@ -64,12 +71,14 @@ impl From<u8> for Opcode {
     }
 }
 
+/// Represents a combination of an opcode and operands for the VM to execute
 #[derive(Debug, PartialEq)]
 pub struct Instruction {
     opcode: Opcode,
 }
 
 impl Instruction {
+    /// Creates a new Instruction
     pub fn new (opcode: Opcode) -> Self {
         Self {opcode}
     }

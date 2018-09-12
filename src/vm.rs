@@ -15,7 +15,7 @@ pub struct VM {
 }
 
 impl VM {
-    /// Creates a vm
+    /// Creates a VM
     pub fn new() -> Self {
         Self {
             registers: [0; 32],
@@ -26,7 +26,7 @@ impl VM {
         }
     }
 
-    /// Runs the vm with loop
+    /// Runs the VM with loop
     pub fn run(&mut self) {
         let mut is_done = false;
         while !is_done {
@@ -34,7 +34,7 @@ impl VM {
         }
     }
 
-    /// Runs the vm only one cycle
+    /// Runs the VM only one cycle
     pub fn run_once(&mut self) {
         self.excute_instruction();
     }
@@ -154,21 +154,21 @@ impl VM {
         true
     }
 
-    /// Decode the byte the VM's program counter is pointing at into an opcode
+    /// Decodes the byte the VM's program counter is pointing at into an opcode
     fn decode_opcode(&mut self) -> Opcode {
         let opcode = Opcode::from(self.program[self.pc]);
         self.pc += 1;
         opcode
     }
 
-    /// Decode the next byte into an opcode
+    /// Decodes the next byte into an opcode
     fn next_8_bits(&mut self) -> u8 {
         let res = self.program[self.pc];
         self.pc += 1;
         res
     }
 
-    /// Decode the next 2 bytes into an opcode
+    /// Decodes the next 2 bytes into an opcode
     fn next_16_bits(&mut self) -> u16 {
         let res = ((self.program[self.pc] as u16) << 8) | (self.program[self.pc + 1] as u16);
         self.pc += 2;
