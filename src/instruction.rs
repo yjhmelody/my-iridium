@@ -2,8 +2,7 @@
 pub enum Opcode {
     /// load opcode
     LOAD,
-    /// halt the vm
-    HLT,
+
     /// ADD src1 src2 dst
     ADD,
     /// SUB src1 src2 dst
@@ -18,9 +17,20 @@ pub enum Opcode {
     JMPF,
     /// Relative Jumps for jump backwards
     JMPB,
+
+    /// halt the vm
+    HLT,
+
+    EQ,
+    NEQ,
+    GT,
+    LT,
+    GTE,
+    LTE,
+    JMPE,
+
     /// illegal opcode
     IGL,
-
 }
 
 /// convert u8 to an opcode
@@ -29,14 +39,26 @@ impl From<u8> for Opcode {
         use self::Opcode::*;
         match v {
             0 => LOAD,
+
             1 => ADD,
             2 => SUB,
             3 => MUL,
             4 => DIV,
+
             5 => HLT,
+
             6 => JMP,
             7 => JMPF,
             8 => JMPB,
+
+            9 => EQ,
+            10 => NEQ,
+            11 => GT,
+            12 => LT,
+            13 => GTE,
+            14 => LTE,
+            15 => JMPE,
+
             _ => IGL,
         }
     }
