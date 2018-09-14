@@ -1,6 +1,11 @@
 [package]
-name = "my-Iridium"
+name = "my-iridium"
 version = "0.1.0"
 authors = ["yjhmelody <465402634@qq.com>"]
 
 [dependencies]
+nom = "^4.0"
+
+
+[[bin]]
+name = "my-iridium"
