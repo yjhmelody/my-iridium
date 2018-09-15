@@ -3,11 +3,11 @@ use instruction::*;
 /// Virtual machine struct that will execute bytecode
 pub struct VM {
     /// 0-31 registers
-    registers: [i32; 32],
+    pub registers: [i32; 32],
     /// Program counter
     pc: usize,
     /// Saves the bytecode
-    program: Vec<u8>,
+    pub program: Vec<u8>,
     /// Contains the remainder of division
     remainder: u32,
     /// Contains the result of the last comparison operation
@@ -176,6 +176,10 @@ impl VM {
         res
     }
 
+    /// Adds an arbitrary byte to the VM's program
+    pub fn add_byte(&mut self, b: u8) {
+        self.program.push(b);
+    }
 }
 
 #[cfg(test)]

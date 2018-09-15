@@ -1,3 +1,5 @@
+use assembler::program_parsers::parse_program;
+use nom::types::CompleteStr;
 use std;
 use std::io;
 use std::io::Write;
@@ -28,9 +30,11 @@ impl REPL {
             print!(">>>");
             io::stdout().flush().expect("Unable to flush stdout");
             stdin.read_line(&mut buffer).expect("Unable to read line from user");
+
             if buffer != ".history" {
                 self.command_buffer.push(buffer.to_string());
             }
+
             let buffer = buffer.trim();
             match buffer {
                 ".quit" => {
@@ -40,12 +44,27 @@ impl REPL {
 
                 ".history" => {
                     for command in &self.command_buffer {
-                        println!("{}", command);
+                        print!("{}", command);
                     }
+                }
+                ".registers" => {
+                    println!("{:#?}", self.vm.registers);
                 }
 
                 _ => {
-                    println!("Invalid input");
+                    let program = parse_program(CompleteStr(buffer));
+                    if !program.is_ok() {
+                        println!("Unable to parse input");
+                        continue;
+                    }
+
+                    let (_, program) = program.unwrap();
+                    let bytecodes = program.to_bytes();
+                    // TODO: Make a function to let us add bytes to the VM
+                    for byte in bytecodes {
+                        self.vm.add_byte(byte);
+                    }
+                    self.vm.run_once();
                 }
             }
         }
