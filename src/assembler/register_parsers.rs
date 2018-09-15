@@ -4,7 +4,7 @@ use nom::types::CompleteStr;
 use super::*;
 
 /// Parser for register number, which we use `$` as prefix
-named!(register<CompleteStr, Token>,
+named!(pub register<CompleteStr, Token>,
     ws!(
         do_parse!(
             tag!("$") >>
