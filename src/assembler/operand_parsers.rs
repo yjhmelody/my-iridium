@@ -4,8 +4,7 @@ use nom::types::CompleteStr;
 use super::*;
 
 /// Parser for integer numbers, which we preface with `#` in our assembly language
-named!(
-    integer_operand<CompleteStr, Token>,
+named!(integer_operand<CompleteStr, Token>,
     ws!(
         do_parse!(
             tag!("#") >>
@@ -20,6 +19,8 @@ named!(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_parse_integer_oprand() {
         let result = integer_operand(CompleteStr("#10"));
@@ -27,5 +28,8 @@ mod tests {
         let (res, token) = result.unwrap();
         assert_eq!(res, CompleteStr(""));
         assert_eq!(token, Token::IntegerOperand { value: 10 });
+
+        let result = integer_operand(CompleteStr("10"));
+        assert_eq!(result.is_ok(), false);
     }
 }

@@ -3,8 +3,8 @@ use nom::digit;
 use nom::types::CompleteStr;
 use super::*;
 
-named!(
-    register<CompleteStr, Token>,
+/// Parser for register number, which we use `$` as prefix
+named!(register<CompleteStr, Token>,
     ws!(
         do_parse!(
             tag!("$") >>
@@ -21,6 +21,8 @@ named!(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_parse_register() {
         let res = register(CompleteStr("$0"));

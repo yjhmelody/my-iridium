@@ -3,8 +3,8 @@ use instruction::Opcode;
 use nom::types::CompleteStr;
 use super::*;
 
-named!(
-    pub opcode_load<CompleteStr, Token>,
+/// Parser for load opcode
+named!(pub opcode_load<CompleteStr, Token>,
     do_parse!(
         tag!("load") >> (Token::Op{code: Opcode::LOAD})
     )
@@ -13,6 +13,8 @@ named!(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_opcode_load() {
         let result = opcode_load(CompleteStr("load"));
