@@ -42,6 +42,12 @@ pub enum Opcode {
     NOP,
     /// For memory
     ALOC,
+
+    /// Increase one
+    Inc,
+    /// Decrease one
+    Dec,
+
     /// Illegal opcode
     IGL,
 }
@@ -75,6 +81,9 @@ impl From<u8> for Opcode {
             16 => NOP,
             17 => ALOC,
 
+            18 => Inc,
+            19 => Dec,
+
             _ => IGL,
         }
     }
@@ -101,6 +110,8 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("jmpe") => Opcode::JMPE,
             CompleteStr("nop") => Opcode::NOP,
             CompleteStr("aloc") => Opcode::ALOC,
+            CompleteStr("inc") => Opcode::Inc,
+            CompleteStr("dec") => Opcode::Dec,
 
             _ => Opcode::IGL,
         }

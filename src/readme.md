@@ -11,14 +11,16 @@
 - 1个指令段
 - 1个余数专用寄存器
 - 1个比较寄存器
+- 1个堆
 
 ### 指令集
 
 实现如下，计划加入位运算，浮点数支持，函数调用。
 
+
 ```rust
 pub enum Opcode {
-    /// Load opcode
+    /// Load data to register
     LOAD,
 
     /// Add src1 src2 dst
@@ -54,6 +56,10 @@ pub enum Opcode {
     /// If equaly_bool(A special register for storing last equality result) == true then jmp
     JMPE,
 
+    /// No operate
+    NOP,
+    /// For memory
+    ALOC,
     /// Illegal opcode
     IGL,
 }

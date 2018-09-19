@@ -47,6 +47,11 @@ impl AssemblerInstruction {
             }
         }
 
+        // padding to 32 bits
+        while results.len() < 4 {
+            results.push(0);
+        }
+
         results
     }
 
