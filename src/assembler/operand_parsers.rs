@@ -1,7 +1,6 @@
 use assembler::Token;
 use nom::digit;
 use nom::types::CompleteStr;
-use super::*;
 
 /// Parser for integer numbers, which we preface with `#` in our assembly language
 named!(pub integer_operand<CompleteStr, Token>,

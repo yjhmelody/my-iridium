@@ -1,8 +1,9 @@
 use assembler::program_parsers::parse_program;
-use nom::types::CompleteStr;
 use std;
 use std::io;
 use std::io::Write;
+use std::num::ParseIntError;
+use std::u8;
 use vm::VM;
 
 /// Core structure for the REPL for the Assembler
@@ -52,21 +53,37 @@ impl REPL {
                 }
 
                 _ => {
-                    let program = parse_program(CompleteStr(buffer));
-                    if !program.is_ok() {
-                        println!("Unable to parse input");
-                        continue;
-                    }
-
-                    let (_, program) = program.unwrap();
-                    let bytecodes = program.to_bytes();
-                    // TODO: Make a function to let us add bytes to the VM
-                    for byte in bytecodes {
-                        self.vm.add_byte(byte);
-                    }
+                    let program = match parse_program(buffer.into()) {
+                        Ok((_, program)) => program,
+                        Err(_) => {
+                            println!("Unable to parse input");
+                            continue;
+                        }
+                    };
+                    self.vm.program.append(&mut program.to_bytes());
                     self.vm.run_once();
                 }
             }
         }
+    }
+
+    /// Accepts a hexadecimal string WITHOUT a leading `0x` and returns a Vec of u8
+    /// Example for a LOAD command: 00 01 03 E8
+    fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
+        let split = i.split(" ").collect::<Vec<&str>>();
+        let mut results: Vec<u8> = vec![];
+
+        for hex_string in split {
+            let byte = u8::from_str_radix(&hex_string, 16);
+            match byte {
+                Ok(result) => {
+                    results.push(result);
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+        }
+        Ok(results)
     }
 }

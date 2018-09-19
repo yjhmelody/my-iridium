@@ -1,7 +1,6 @@
 use assembler::Token;
 use instruction::Opcode;
 use nom::types::CompleteStr;
-use super::*;
 
 /// Parser for load opcode
 named!(pub opcode_load<CompleteStr, Token>,

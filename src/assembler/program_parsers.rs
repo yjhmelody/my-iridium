@@ -20,6 +20,7 @@ impl Program {
     }
 }
 
+/// parse the program to a vector of instructions
 named!(pub parse_program<CompleteStr, Program>,
     do_parse!(
         instructions: many1!(instruction_one) >>
@@ -30,6 +31,7 @@ named!(pub parse_program<CompleteStr, Program>,
         )
     )
 );
+
 
 mod tests {
     use super::*;

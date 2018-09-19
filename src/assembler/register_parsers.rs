@@ -1,7 +1,6 @@
 use assembler::Token;
 use nom::digit;
 use nom::types::CompleteStr;
-use super::*;
 
 /// Parser for register number, which we use `$` as prefix
 named!(pub register<CompleteStr, Token>,
