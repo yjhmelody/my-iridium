@@ -3,7 +3,7 @@ use nom::digit;
 use nom::types::CompleteStr;
 
 /// Parser for register number, which we use `$` as prefix
-named!(pub register<CompleteStr, Token>,
+named!(pub parse_register<CompleteStr, Token>,
     ws!(
         do_parse!(
             tag!("$") >>
@@ -24,11 +24,11 @@ mod tests {
 
     #[test]
     fn test_parse_register() {
-        let res = register(CompleteStr("$0"));
+        let res = parse_register(CompleteStr("$0"));
         assert_eq!(res.is_ok(), true);
-        let res = register(CompleteStr("0"));
+        let res = parse_register(CompleteStr("0"));
         assert_eq!(res.is_ok(), false);
-        let res = register(CompleteStr("$a"));
+        let res = parse_register(CompleteStr("$a"));
         assert_eq!(res.is_ok(), false);
     }
 }

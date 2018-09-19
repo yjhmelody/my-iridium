@@ -1,3 +1,5 @@
+use nom::types::CompleteStr;
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Opcode {
     /// Load opcode
@@ -36,6 +38,10 @@ pub enum Opcode {
     /// If equaly_bool(A special register for storing last equality result) == true then jmp
     JMPE,
 
+    /// No operate
+    NOP,
+    /// For memory
+    ALOC,
     /// Illegal opcode
     IGL,
 }
@@ -66,7 +72,37 @@ impl From<u8> for Opcode {
             14 => LTE,
             15 => JMPE,
 
+            16 => NOP,
+            17 => ALOC,
+
             _ => IGL,
+        }
+    }
+}
+
+impl<'a> From<CompleteStr<'a>> for Opcode {
+    fn from(v: CompleteStr<'a>) -> Self {
+        match v {
+            CompleteStr("load") => Opcode::LOAD,
+            CompleteStr("add") => Opcode::ADD,
+            CompleteStr("sub") => Opcode::SUB,
+            CompleteStr("mul") => Opcode::MUL,
+            CompleteStr("div") => Opcode::DIV,
+            CompleteStr("hlt") => Opcode::HLT,
+            CompleteStr("jmp") => Opcode::JMP,
+            CompleteStr("jmpf") => Opcode::JMPF,
+            CompleteStr("jmpb") => Opcode::JMPB,
+            CompleteStr("eq") => Opcode::EQ,
+            CompleteStr("neq") => Opcode::NEQ,
+            CompleteStr("gte") => Opcode::GTE,
+            CompleteStr("gt") => Opcode::GT,
+            CompleteStr("lte") => Opcode::LTE,
+            CompleteStr("lt") => Opcode::LT,
+            CompleteStr("jmpe") => Opcode::JMPE,
+            CompleteStr("nop") => Opcode::NOP,
+            CompleteStr("aloc") => Opcode::ALOC,
+
+            _ => Opcode::IGL,
         }
     }
 }
@@ -98,5 +134,13 @@ mod tests {
     fn create_instruction() {
         let instr = Instruction::new(Opcode::HLT);
         assert_eq!(instr.opcode, Opcode::HLT);
+    }
+
+    #[test]
+    fn str_to_opcode() {
+        let opcode = Opcode::from(CompleteStr("load"));
+        assert_eq!(opcode, Opcode::LOAD);
+        let opcode = Opcode::from(CompleteStr("illegal"));
+        assert_eq!(opcode, Opcode::IGL);
     }
 }

@@ -8,6 +8,8 @@ pub struct VM {
     pc: usize,
     /// Saves the bytecode
     pub program: Vec<u8>,
+    /// Used for heap memory
+    heap: Vec<u8>,
     /// Contains the remainder of division
     remainder: u32,
     /// Contains the result of the last comparison operation
@@ -21,6 +23,7 @@ impl VM {
             registers: [0; 32],
             pc: 0,
             program: Vec::new(),
+            heap: Vec::new(),
             remainder: 0,
             equal_flag: false,
         }
@@ -145,6 +148,13 @@ impl VM {
                     let target = self.registers[register] as usize;
                     self.pc = target;
                 }
+            }
+
+            Opcode::ALOC => {
+                let register = self.next_8_bits() as usize;
+                let bytes = self.registers[register];
+                let new_end = self.heap.len() as i32 + bytes;
+                self.heap.resize(new_end as usize, 0);
             }
 
             _ => {
@@ -375,5 +385,14 @@ mod tests {
         vm.program = vec![15, 0, 0, 0, 15, 0, 0, 0, 15, 0, 0, 0];
         vm.run_once();
         assert_eq!(vm.pc, 7);
+    }
+
+    #[test]
+    fn opcode_aloc() {
+        let mut test_vm = get_test_vm();
+        test_vm.registers[0] = 1024;
+        test_vm.program = vec![17, 0, 0, 0];
+        test_vm.run_once();
+        assert_eq!(test_vm.heap.len(), 1024);
     }
 }

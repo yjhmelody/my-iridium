@@ -1,9 +1,10 @@
+use assembler::label_parsers::parse_label_usage;
 use assembler::Token;
 use nom::digit;
 use nom::types::CompleteStr;
 
 /// Parser for integer numbers, which we preface with `#` in our assembly language
-named!(pub integer_operand<CompleteStr, Token>,
+named!(pub parse_integer_operand<CompleteStr, Token>,
     ws!(
         do_parse!(
             tag!("#") >>
@@ -15,6 +16,14 @@ named!(pub integer_operand<CompleteStr, Token>,
     )
 );
 
+/// Parser for all kinds of operand
+named!(pub parse_operand<CompleteStr, Token>,
+    alt!(
+        parse_integer_operand |
+        parse_label_usage
+    )
+);
+
 
 #[cfg(test)]
 mod tests {
@@ -22,13 +31,13 @@ mod tests {
 
     #[test]
     fn test_parse_integer_oprand() {
-        let result = integer_operand(CompleteStr("#10"));
+        let result = parse_integer_operand(CompleteStr("#10"));
         assert_eq!(result.is_ok(), true);
         let (res, token) = result.unwrap();
         assert_eq!(res, CompleteStr(""));
         assert_eq!(token, Token::IntegerOperand { value: 10 });
 
-        let result = integer_operand(CompleteStr("10"));
+        let result = parse_integer_operand(CompleteStr("10"));
         assert_eq!(result.is_ok(), false);
     }
 }

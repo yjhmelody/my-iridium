@@ -1,7 +1,6 @@
 use assembler::instruction_parsers::*;
 use nom::types::CompleteStr;
 
-
 /// Stores a assemble program
 #[derive(Debug, PartialEq)]
 pub struct Program {
@@ -23,7 +22,7 @@ impl Program {
 /// parse the program to a vector of instructions
 named!(pub parse_program<CompleteStr, Program>,
     do_parse!(
-        instructions: many1!(instruction_one) >>
+        instructions: many1!(parse_instruction) >>
         (
             Program {
                 instructions: instructions
