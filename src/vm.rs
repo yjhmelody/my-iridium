@@ -389,10 +389,10 @@ mod tests {
 
     #[test]
     fn opcode_aloc() {
-        let mut test_vm = get_test_vm();
-        test_vm.registers[0] = 1024;
-        test_vm.program = vec![17, 0, 0, 0];
-        test_vm.run_once();
-        assert_eq!(test_vm.heap.len(), 1024);
+        let mut vm = get_test_vm();
+        vm.registers[0] = 1024;
+        vm.program = vec![17, 0, 0, 0];
+        vm.run_once();
+        assert_eq!(vm.heap.len(), 1024);
     }
 }

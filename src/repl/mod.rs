@@ -12,6 +12,12 @@ pub struct REPL {
     vm: VM,
 }
 
+impl Default for REPL {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl REPL {
     /// Creates a REPL
     pub fn new() -> Self {
@@ -48,8 +54,19 @@ impl REPL {
                         print!("{}", command);
                     }
                 }
+
+                ".program" => {
+                    println!("Listing instructions currently in VM's program vector:");
+                    for inst in &self.vm.program {
+                        println!("{}", inst);
+                    }
+                    println!("End of Program Listing");
+                }
+
                 ".registers" => {
+                    println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm.registers);
+                    println!("End of Register Listing");
                 }
 
                 _ => {

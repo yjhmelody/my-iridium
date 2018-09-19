@@ -2,7 +2,7 @@ use nom::types::CompleteStr;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Opcode {
-    /// Load opcode
+    /// Load data to register
     LOAD,
 
     /// Add src1 src2 dst
