@@ -10,7 +10,7 @@ pub mod label_parsers;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
-    Op{code: Opcode},
+    Op { code: Opcode },
     Register { reg_num: u8 },
     IntegerOperand { value: i32 },
     LabelDeclaration { name: String },

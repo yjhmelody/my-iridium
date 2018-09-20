@@ -1,3 +1,4 @@
+use assembler::directive_parsers::parse_directive;
 use assembler::instruction_parsers::*;
 use nom::types::CompleteStr;
 
@@ -22,7 +23,7 @@ impl Program {
 /// parse the program to a vector of instructions
 named!(pub parse_program<CompleteStr, Program>,
     do_parse!(
-        instructions: many1!(parse_instruction) >>
+        instructions: many1!(alt!(parse_instruction | parse_directive)) >>
         (
             Program {
                 instructions: instructions

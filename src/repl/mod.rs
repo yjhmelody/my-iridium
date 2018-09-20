@@ -1,8 +1,12 @@
 use assembler::program_parsers::parse_program;
+use nom::types::CompleteStr;
 use std;
+use std::fs::File;
 use std::io;
+use std::io::prelude::*;
 use std::io::Write;
 use std::num::ParseIntError;
+use std::path::Path;
 use std::u8;
 use vm::VM;
 
@@ -38,7 +42,7 @@ impl REPL {
             io::stdout().flush().expect("Unable to flush stdout");
             stdin.read_line(&mut buffer).expect("Unable to read line from user");
 
-            if buffer != ".history" {
+            if buffer.trim() != ".history" {
                 self.command_buffer.push(buffer.to_string());
             }
 
@@ -67,6 +71,41 @@ impl REPL {
                     println!("Listing registers and all contents:");
                     println!("{:#?}", self.vm.registers);
                     println!("End of Register Listing");
+                }
+
+                ".clear_program" => {
+                    println!("Removing all bytes from VM's program vector...");
+                    self.vm.program.truncate(0);
+                }
+
+                ".clear_registers" => {
+                    println!("Setting all registers to 0");
+                    for i in 0..self.vm.registers.len() {
+                        self.vm.registers[i] = 0;
+                    }
+                }
+
+                ".load_file" => {
+                    print!("Please enter the path to the file you wish to load: ");
+                    io::stdout().flush().expect("Unable to flush stdout");
+                    let mut tmp = String::new();
+                    stdin.read_line(&mut tmp).expect("Unable to read line from user");
+                    let tmp = tmp.trim();
+                    let filename = Path::new(&tmp);
+                    let mut f = File::open(Path::new(&filename)).expect("File not found");
+                    let mut contents = String::new();
+                    f.read_to_string(&mut contents).expect("There was an error reading from the file");
+                    let program = match parse_program(CompleteStr(&contents)) {
+                        // Rusts pattern matching is pretty powerful an can even be nested
+                        Ok((remainder, program)) => {
+                            program
+                        },
+                        Err(e) => {
+                            println!("Unable to parse input: {:?}", e);
+                            continue;
+                        }
+                    };
+                    self.vm.program.append(&mut program.to_bytes());
                 }
 
                 _ => {

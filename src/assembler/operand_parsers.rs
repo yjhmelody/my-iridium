@@ -1,4 +1,5 @@
 use assembler::label_parsers::parse_label_usage;
+use assembler::register_parsers::parse_register;
 use assembler::Token;
 use nom::digit;
 use nom::types::CompleteStr;
@@ -20,6 +21,7 @@ named!(pub parse_integer_operand<CompleteStr, Token>,
 named!(pub parse_operand<CompleteStr, Token>,
     alt!(
         parse_integer_operand |
+        parse_register |
         parse_label_usage
     )
 );
