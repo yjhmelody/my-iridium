@@ -74,18 +74,22 @@ impl AssemblerInstruction {
         }
     }
 
+    /// Check it is label
     pub fn is_label(&self) -> bool {
         self.label.is_some()
     }
 
+    /// Check it is opcode
     pub fn is_opcode(&self) -> bool {
         self.opcode.is_some()
     }
 
+    /// Check it is directive
     pub fn is_directive(&self) -> bool {
         self.directive.is_some()
     }
 
+    /// Get label's name
     pub fn label_name(&self) -> Option<String> {
         if let Some(label) = &self.label {
             match label {

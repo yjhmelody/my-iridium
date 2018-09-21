@@ -5,7 +5,7 @@ use nom::types::CompleteStr;
 /// Stores a assemble program
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    instructions: Vec<AssemblerInstruction>
+    pub instructions: Vec<AssemblerInstruction>
 }
 
 impl Program {

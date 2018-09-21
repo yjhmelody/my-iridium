@@ -204,6 +204,11 @@ impl VM {
     pub fn add_byte(&mut self, b: u8) {
         self.program.push(b);
     }
+
+    /// Adds some bytes to the VM's program
+    pub fn add_bytes(&mut self, mut bytes: Vec<u8>) {
+        self.program.append(&mut bytes);
+    }
 }
 
 #[cfg(test)]
