@@ -52,7 +52,8 @@ mod tests {
         let result = parse_program(CompleteStr("load $0 #100\n"));
         assert_eq!(result.is_ok(), true);
         let (_, p) = result.unwrap();
-        let bytecode = p.to_bytes();
+        let symbols = SymbolTable::new();
+        let bytecode = p.to_bytes(&symbols);
         assert_eq!(bytecode.len(), 4);
         println!("{:?}", bytecode);
     }

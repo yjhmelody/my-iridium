@@ -13,6 +13,9 @@ pub mod directive_parsers;
 pub mod label_parsers;
 pub mod symbols;
 
+pub const PIE_HEADER_PREFIX: [u8; 4] = [45, 50, 49, 45];
+pub const PIE_HEADER_LENGTH: usize = 64;
+
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
@@ -38,13 +41,29 @@ impl Assembler {
         }
     }
 
+    fn write_pie_header(&self) -> Vec<u8> {
+        let mut header = vec![];
+        for byte in PIE_HEADER_PREFIX.iter() {
+            header.push(byte.clone());
+        }
+        while header.len() <= PIE_HEADER_LENGTH {
+            header.push(0 as u8);
+        }
+
+        header
+    }
+
     pub fn assemble(&mut self, raw: &str) -> Option<Vec<u8>> {
         match parse_program(CompleteStr(raw)) {
             Ok((_remainder, program)) => {
+                // write header
+                let mut assembled_program = self.write_pie_header();
                 // first pass
                 self.process_first_phase(&program);
                 // second pass
-                Some(self.process_second_phase(&program))
+                let mut program = self.process_second_phase(&program);
+                assembled_program.append(&mut program);
+                Some(assembled_program)
             },
 
             Err(e) => {
