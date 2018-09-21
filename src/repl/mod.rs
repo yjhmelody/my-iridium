@@ -1,3 +1,4 @@
+use assembler::Assembler;
 use assembler::program_parsers::parse_program;
 use nom::types::CompleteStr;
 use std;
@@ -10,10 +11,12 @@ use std::path::Path;
 use std::u8;
 use vm::VM;
 
+
 /// Core structure for the REPL for the Assembler
 pub struct REPL {
     command_buffer: Vec<String>,
     vm: VM,
+    asm: Assembler,
 }
 
 impl Default for REPL {
@@ -28,6 +31,7 @@ impl REPL {
         Self {
             command_buffer: Vec::new(),
             vm: VM::new(),
+            asm: Assembler::new(),
         }
     }
 
@@ -105,7 +109,7 @@ impl REPL {
                             continue;
                         }
                     };
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm.program.append(&mut program.to_bytes(&self.asm.symbols));
                 }
 
                 _ => {
@@ -116,7 +120,7 @@ impl REPL {
                             continue;
                         }
                     };
-                    self.vm.program.append(&mut program.to_bytes());
+                    self.vm.program.append(&mut program.to_bytes(&self.asm.symbols));
                     self.vm.run_once();
                 }
             }

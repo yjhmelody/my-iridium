@@ -1,6 +1,8 @@
 use assembler::directive_parsers::parse_directive;
 use assembler::instruction_parsers::*;
+use assembler::symbols::SymbolTable;
 use nom::types::CompleteStr;
+
 
 /// Stores a assemble program
 #[derive(Debug, PartialEq)]
@@ -10,10 +12,10 @@ pub struct Program {
 
 impl Program {
     /// Translates instruction into bytes for eval.
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self, symbols: &SymbolTable) -> Vec<u8> {
         let mut program = vec![];
         for instr in &self.instructions {
-            program.append(&mut instr.to_bytes());
+            program.append(&mut instr.to_bytes(symbols));
         }
 
         program

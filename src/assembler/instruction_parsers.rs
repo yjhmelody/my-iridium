@@ -3,11 +3,11 @@ use assembler::label_parsers::*;
 use assembler::opcode_parsers::*;
 use assembler::operand_parsers::*;
 use assembler::register_parsers::*;
+use assembler::symbols::*;
 use assembler::Token;
 use nom::multispace;
 use nom::types::CompleteStr;
 use std::process;
-
 
 /// Stores a line assemble instruction
 #[derive(Debug, PartialEq)]
@@ -22,7 +22,7 @@ pub struct AssemblerInstruction {
 
 impl AssemblerInstruction {
     /// Translates instruction into bytes for eval.
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self, symbols: &SymbolTable) -> Vec<u8> {
         let mut results = vec![];
         // translate opcode
         if let Some(ref token) = self.opcode {
@@ -43,7 +43,7 @@ impl AssemblerInstruction {
         // translate operands
         for operand in &[&self.operand1, &self.operand2, &self.operand3] {
             if let Some(token) = operand {
-                AssemblerInstruction::extract_operand(token, &mut results);
+                AssemblerInstruction::extract_operand(token, &mut results, symbols);
             }
         }
 
@@ -55,9 +55,10 @@ impl AssemblerInstruction {
         results
     }
 
-    fn extract_operand(t: &Token, results: &mut Vec<u8>) {
+    fn extract_operand(t: &Token, results: &mut Vec<u8>, symbols: &SymbolTable) {
         match t {
             Token::Register { reg_num } => { results.push(*reg_num) },
+
             Token::IntegerOperand { value } => {
                 let converted = *value as u16;
                 let byte1 = converted;
@@ -65,6 +66,15 @@ impl AssemblerInstruction {
                 // pay attention to order
                 results.push(byte2 as u8);
                 results.push(byte1 as u8);
+            }
+
+            Token::LabelUsage { name } => {
+                if let Some(value) = symbols.symbol_value(name) {
+                    let byte1 = value;
+                    let byte2 = value >> 8;
+                    results.push(byte2 as u8);
+                    results.push(byte1 as u8);
+                }
             }
 
             _ => {

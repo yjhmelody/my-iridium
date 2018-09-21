@@ -61,8 +61,8 @@ impl Assembler {
 
     fn process_second_phase(&mut self, p: &Program) -> Vec<u8> {
         let mut program = vec![];
-        for i in &p.instructions {
-            let mut bytes = i.to_bytes();
+        for inst in &p.instructions {
+            let mut bytes = inst.to_bytes(&self.symbols);
             program.append(&mut bytes);
         }
 
