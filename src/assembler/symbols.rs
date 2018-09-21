@@ -22,7 +22,7 @@ pub enum SymbolType {
 #[derive(Debug, Default)]
 pub struct SymbolTable {
     // todo: use HashTable to replace Vec
-    symbols: Vec<Symbol>,
+    pub symbols: Vec<Symbol>,
 }
 
 impl SymbolTable {
@@ -61,7 +61,6 @@ impl Default for AssemblerPhase {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -78,16 +77,5 @@ mod tests {
         assert_eq!(v, 12);
         let v = sym.symbol_value("does_not_exist");
         assert_eq!(v.is_some(), false);
-    }
-
-    #[test]
-    fn test_assemble_program() {
-        let mut asm = Assembler::new();
-        let test_string = "load $0 #100\nload $1 #1\nload $2 #0\ntest: inc $0\nneq $0 $2\njmpe @test\nhlt";
-        let program = asm.assemble(test_string).unwrap();
-        let mut vm = VM::new();
-        assert_eq!(program.len(), 21);
-        vm.add_bytes(program);
-        assert_eq!(vm.program.len(), 21);
     }
 }

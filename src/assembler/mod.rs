@@ -1,3 +1,4 @@
+use ::vm::VM;
 use assembler::symbols::*;
 use instruction::Opcode;
 use nom::types::CompleteStr;
@@ -87,3 +88,8 @@ impl Assembler {
     }
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+}
