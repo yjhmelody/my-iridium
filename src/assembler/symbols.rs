@@ -1,6 +1,3 @@
-use ::vm::VM;
-use assembler::Assembler;
-
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
@@ -63,6 +60,8 @@ impl Default for AssemblerPhase {
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused_imports)]
+
     use super::*;
 
     #[test]

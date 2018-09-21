@@ -55,6 +55,8 @@ named!(pub parse_directive<CompleteStr, AssemblerInstruction>,
 );
 
 mod tests {
+    #![allow(unused_imports)]
+
     use super::*;
 
     #[test]

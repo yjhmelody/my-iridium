@@ -32,6 +32,8 @@ named!(pub parse_label_usage<CompleteStr, Token>,
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused_imports)]
+
     use super::*;
 
     #[test]

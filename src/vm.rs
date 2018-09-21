@@ -228,6 +228,8 @@ impl VM {
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused_imports)]
+
     use super::*;
 
     fn get_test_vm() -> VM {

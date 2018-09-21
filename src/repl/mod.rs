@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use assembler::Assembler;
 use assembler::program_parsers::parse_program;
 use nom::types::CompleteStr;
@@ -101,7 +103,7 @@ impl REPL {
                     f.read_to_string(&mut contents).expect("There was an error reading from the file");
                     let program = match parse_program(CompleteStr(&contents)) {
                         // Rusts pattern matching is pretty powerful an can even be nested
-                        Ok((remainder, program)) => {
+                        Ok((_remainder, program)) => {
                             program
                         },
                         Err(e) => {

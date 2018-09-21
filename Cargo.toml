@@ -6,6 +6,9 @@ authors = ["yjhmelody <465402634@qq.com>"]
 [dependencies]
 nom = "^4.0"
 clap = {version = "2.32", features = ["yaml"]}
+log = "0.4"
+env_logger = "0.5.13"
+byteorder = "1"
 
 [[bin]]
 name = "my-iridium"

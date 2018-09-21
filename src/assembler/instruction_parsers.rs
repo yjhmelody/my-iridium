@@ -1,11 +1,8 @@
-use assembler::directive_parsers::*;
 use assembler::label_parsers::*;
 use assembler::opcode_parsers::*;
 use assembler::operand_parsers::*;
-use assembler::register_parsers::*;
 use assembler::symbols::*;
 use assembler::Token;
-use nom::multispace;
 use nom::types::CompleteStr;
 use std::process;
 

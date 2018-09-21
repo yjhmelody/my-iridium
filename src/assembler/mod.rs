@@ -1,4 +1,3 @@
-use ::vm::VM;
 use assembler::symbols::*;
 use instruction::Opcode;
 use nom::types::CompleteStr;
@@ -25,6 +24,7 @@ pub enum Token {
     LabelDeclaration { name: String },
     LabelUsage { name: String },
     Directive { name: String },
+    IrString { name: String },
 }
 
 #[derive(Debug, Default)]
@@ -110,5 +110,7 @@ impl Assembler {
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused_imports)]
+
     use super::*;
 }
