@@ -25,13 +25,15 @@ fn main() {
             let program = asm.assemble(&program);
 
             match program {
-                Some(p) => {
+                Ok(p) => {
                     vm.add_bytes(p);
                     vm.run();
                     std::process::exit(0);
                 },
 
-                None => {},
+                Err(e) => {
+                    println!("program running error {:?}", e);
+                },
             }
         },
         None => { start_repl(); },

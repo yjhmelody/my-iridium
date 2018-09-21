@@ -96,8 +96,25 @@ impl AssemblerInstruction {
         self.directive.is_some()
     }
 
+    pub fn has_operands(&self) -> bool {
+        self.operand1.is_some() || self.operand2.is_some() || self.operand3.is_some()
+    }
+
+    pub fn get_directive_name(&self) -> Option<String> {
+        match &self.directive {
+            Some(d) => {
+                match d {
+                    Token::Directive { name } => Some(name.to_string()),
+                    _ => None,
+                }
+            }
+
+            None => None,
+        }
+    }
+
     /// Get label's name
-    pub fn label_name(&self) -> Option<String> {
+    pub fn get_label_name(&self) -> Option<String> {
         if let Some(label) = &self.label {
             match label {
                 Token::LabelDeclaration { name } => {
@@ -107,6 +124,17 @@ impl AssemblerInstruction {
             }
         } else {
             None
+        }
+    }
+
+    // Get the string constant from `.asciiz` directive
+    pub fn get_string_constant(&self) -> Option<String> {
+        match &self.operand1 {
+            Some(d) => match d {
+                Token::IrString { name } => Some(name.to_string()),
+                _ => None,
+            },
+            None => None,
         }
     }
 }

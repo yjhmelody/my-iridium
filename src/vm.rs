@@ -16,6 +16,8 @@ pub struct VM {
     remainder: u32,
     /// Contains the result of the last comparison operation
     equal_flag: bool,
+    /// Contains the read-only section data
+    ro_data: Vec<u8>,
 }
 
 impl VM {
@@ -28,6 +30,7 @@ impl VM {
             heap: Vec::new(),
             remainder: 0,
             equal_flag: false,
+            ro_data: Vec::new(),
         }
     }
 
@@ -179,6 +182,35 @@ impl VM {
                 self.next_8_bits();
             }
 
+            Opcode::DJMPE => {
+                let destination = self.next_16_bits();
+                if self.equal_flag {
+                    self.pc = destination as usize;
+                } else {
+                    self.next_8_bits();
+                }
+            }
+
+            Opcode::PRTS => {
+                // PRTS takes one operand, either a starting index in the read-only section of the bytecode
+                // or a symbol (in the form of @symbol_name), which will look up the offset in the symbol table.
+                // This instruction then reads each byte and prints it, until it comes to a 0x00 byte, which indicates
+                // termination of the string
+                let starting_offset = self.next_16_bits() as usize;
+                let mut ending_offset = starting_offset;
+                let slice = self.ro_data.as_slice();
+                // TODO: Find a better way to do this. Maybe we can store the byte length and not null terminate? Or some form of caching where we
+                // go through the entire ro_data on VM startup and find every string and its ending byte location?
+                while slice[ending_offset] != 0 {
+                    ending_offset += 1;
+                }
+                let result = std::str::from_utf8(&slice[starting_offset..ending_offset]);
+                match result {
+                    Ok(s) => { print!("{}", s); }
+                    Err(e) => { println!("Error decoding string for prts instruction: {:#?}", e) }
+                };
+            }
+
             _ => {
                 println!("Unrecognized opcode found! Terminating!");
                 return true;
@@ -219,6 +251,7 @@ impl VM {
     }
 
     fn verify_header(&self) -> bool {
+        println!("{:?}", self.program);
         if self.program[0..4] != PIE_HEADER_PREFIX {
             return false;
         }
@@ -466,5 +499,14 @@ mod tests {
         vm.program = vec![19, 0, 0, 0];
         vm.run_once();
         assert_eq!(vm.registers[0], 1);
+    }
+
+    #[test]
+    fn prts_opcode() {
+        let mut vm = get_test_vm();
+        vm.ro_data.append(&mut vec![72, 101, 108, 108, 111, 0]);
+        vm.program = vec![21, 0, 0, 0];
+        vm.run_once();
+        // TODO: How can we validate the output since it is just printing to stdout in a test?
     }
 }

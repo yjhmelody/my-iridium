@@ -48,8 +48,11 @@ pub enum Opcode {
     /// Decrease one
     Dec,
 
+    DJMPE,
+    PRTS,
     /// Illegal opcode
     IGL,
+
 }
 
 /// Converts from a u8 to an Opcode
@@ -84,6 +87,8 @@ impl From<u8> for Opcode {
             18 => Inc,
             19 => Dec,
 
+            20 => DJMPE,
+            21 => PRTS,
             _ => IGL,
         }
     }
@@ -112,7 +117,8 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("aloc") => Opcode::ALOC,
             CompleteStr("inc") => Opcode::Inc,
             CompleteStr("dec") => Opcode::Dec,
-
+            CompleteStr("djmpe") => Opcode::DJMPE,
+            CompleteStr("prts") => Opcode::PRTS,
             _ => Opcode::IGL,
         }
     }

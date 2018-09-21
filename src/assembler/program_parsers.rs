@@ -59,4 +59,17 @@ mod tests {
         assert_eq!(bytecode.len(), 4);
         println!("{:?}", bytecode);
     }
+
+    #[test]
+    fn test_complete_program() {
+        let program = CompleteStr(r"
+        .data
+        hello: .asciiz 'Hello everyone!'
+        .code
+        hlt");
+        let result = parse_program(program);
+        assert_eq!(result.is_ok(), true);
+        let (rest, _) = result.unwrap();
+        assert_eq!(rest, CompleteStr(""));
+    }
 }
