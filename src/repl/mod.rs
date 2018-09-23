@@ -98,7 +98,14 @@ impl REPL {
                     stdin.read_line(&mut tmp).expect("Unable to read line from user");
                     let tmp = tmp.trim();
                     let filename = Path::new(&tmp);
-                    let mut f = File::open(Path::new(&filename)).expect("File not found");
+                    let mut f = match File::open(Path::new(&filename)) {
+                        Ok(f) => f,
+                        Err(e) => {
+                            println!("There was an error opening that file: {:?}", e);
+                            continue;
+                        }
+                    };
+
                     let mut contents = String::new();
                     f.read_to_string(&mut contents).expect("There was an error reading from the file");
                     let program = match parse_program(CompleteStr(&contents)) {
