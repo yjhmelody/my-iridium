@@ -3,6 +3,7 @@
 use assembler::Assembler;
 use assembler::program_parsers::parse_program;
 use nom::types::CompleteStr;
+use scheduler::Scheduler;
 use std;
 use std::fs::File;
 use std::io;
@@ -19,6 +20,7 @@ pub struct REPL {
     command_buffer: Vec<String>,
     vm: VM,
     asm: Assembler,
+    scheduler: Scheduler,
 }
 
 impl Default for REPL {
@@ -34,6 +36,7 @@ impl REPL {
             command_buffer: Vec::new(),
             vm: VM::new(),
             asm: Assembler::new(),
+            scheduler: Scheduler::new(),
         }
     }
 
@@ -98,7 +101,7 @@ impl REPL {
                     stdin.read_line(&mut tmp).expect("Unable to read line from user");
                     let tmp = tmp.trim();
                     let filename = Path::new(&tmp);
-                    let mut f = match File::open(Path::new(&filename)) {
+                    let mut f = match File::open(filename) {
                         Ok(f) => f,
                         Err(e) => {
                             println!("There was an error opening that file: {:?}", e);
@@ -119,6 +122,28 @@ impl REPL {
                         }
                     };
                     self.vm.program.append(&mut program.to_bytes(&self.asm.symbols));
+                }
+
+                ".spawn" => {
+                    let contents = self.get_data_from_load();
+                    if let Some(contents) = contents {
+                        match self.asm.assemble(&contents) {
+                            Ok(mut program) => {
+                                println!("Sending assembled program to VM");
+                                self.vm.program.append(&mut program);
+                                println!("{:#?}", self.vm.program);
+                                self.scheduler.get_thread(self.vm.clone());
+                            }
+                            Err(errs) => {
+                                for err in errs {
+                                    println!("Unable to parse input: {}", err);
+                                }
+                                continue;
+                            }
+                        }
+                    } else {
+                        continue;
+                    }
                 }
 
                 _ => {
@@ -154,5 +179,35 @@ impl REPL {
             }
         }
         Ok(results)
+    }
+
+    fn get_data_from_load(&mut self) -> Option<String> {
+        let stdin = io::stdin();
+        print!("Please enter the path to the file you wish to load: ");
+        io::stdout().flush().expect("Unable to flush stdout");
+
+        let mut tmp = String::new();
+        stdin.read_line(&mut tmp).expect("Unable to read line from user");
+        println!("Attempting to load program from file...");
+
+        let tmp = tmp.trim();
+        let filename = Path::new(&tmp);
+        let mut f = match File::open(&filename) {
+            Ok(f) => { f }
+            Err(e) => {
+                println!("There was an error opening that file: {:?}", e);
+                return None;
+            }
+        };
+        let mut contents = String::new();
+        match f.read_to_string(&mut contents) {
+            Ok(_bytes_read) => {
+                Some(contents)
+            },
+            Err(e) => {
+                println!("there was an error reading that file: {:?}", e);
+                None
+            }
+        }
     }
 }

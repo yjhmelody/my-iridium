@@ -44,9 +44,9 @@ pub enum Opcode {
     ALOC,
 
     /// Increase one
-    Inc,
+    INC,
     /// Decrease one
-    Dec,
+    DEC,
 
     DJMPE,
     PRTS,
@@ -84,8 +84,8 @@ impl From<u8> for Opcode {
             16 => NOP,
             17 => ALOC,
 
-            18 => Inc,
-            19 => Dec,
+            18 => INC,
+            19 => DEC,
 
             20 => DJMPE,
             21 => PRTS,
@@ -115,8 +115,8 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("jmpe") => Opcode::JMPE,
             CompleteStr("nop") => Opcode::NOP,
             CompleteStr("aloc") => Opcode::ALOC,
-            CompleteStr("inc") => Opcode::Inc,
-            CompleteStr("dec") => Opcode::Dec,
+            CompleteStr("inc") => Opcode::INC,
+            CompleteStr("dec") => Opcode::DEC,
             CompleteStr("djmpe") => Opcode::DJMPE,
             CompleteStr("prts") => Opcode::PRTS,
             _ => Opcode::IGL,

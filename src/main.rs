@@ -1,3 +1,4 @@
+extern crate byteorder;
 #[macro_use]
 extern crate clap;
 #[macro_use]
@@ -12,6 +13,7 @@ pub mod assembler;
 pub mod instruction;
 pub mod repl;
 pub mod vm;
+pub mod scheduler;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");

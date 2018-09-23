@@ -5,13 +5,13 @@
 
 ## 二进制布局
 
-- <header>
-- <read-only data>
-- <executable data>
+- header
+- read-only data
+- executable data
 
 ### Header
 
-用于验证的首部，4个幻数，总长64字节，后面60个暂时保留。
+用于验证的首部，4字节的魔数，总长64字节，后面60个暂时保留。
 ```rust
 pub const PIE_HEADER_PREFIX: [u8; 4] = [45, 50, 49, 45];
 pub const PIE_HEADER_LENGTH: usize = 64;
@@ -60,7 +60,6 @@ hello: .asciiz 'Hello'
 - 1111 0xxx    Three more bytes follow
 
 
-
 ## 符号表
 
 
@@ -69,6 +68,7 @@ hello: .asciiz 'Hello'
 
 ## 并发并行
 
+基本原理：创建新的系统线程，并传递新的`VM`，让它执行`vm.run()`直到返回。就像linux一样，给每个线程设置自己的PID。
 
 ## 测试
 
