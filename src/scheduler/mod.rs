@@ -1,7 +1,8 @@
 use std::thread;
-use vm::VM;
+use vm::{VM, VMEvent};
 
 
+/// Scheduler can handle with multi-threads
 #[derive(Debug)]
 pub struct Scheduler {
     next_pid: u32,
@@ -9,6 +10,7 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
+    /// Creates a Scheduler for repl
     pub fn new() -> Self {
         Self {
             next_pid: 0,
@@ -17,7 +19,7 @@ impl Scheduler {
     }
 
     /// Takes a VM and runs it in a background thread
-    pub fn get_thread(&mut self, mut vm: VM) -> thread::JoinHandle<u32> {
+    pub fn get_thread(&mut self, mut vm: VM) -> thread::JoinHandle<Vec<VMEvent>> {
         thread::spawn(move || {
             vm.run()
         })

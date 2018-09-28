@@ -3,6 +3,8 @@ extern crate byteorder;
 extern crate clap;
 #[macro_use]
 extern crate nom;
+extern crate uuid;
+extern crate chrono;
 
 use clap::App;
 use std::fs::File;
@@ -19,6 +21,7 @@ fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
     let target_file = matches.value_of("INPUT_FILE");
+
     match target_file {
         Some(filename) => {
             let program = read_file(filename);
@@ -29,7 +32,12 @@ fn main() {
             match program {
                 Ok(p) => {
                     vm.add_bytes(p);
-                    vm.run();
+                    let events = vm.run();
+                    println!("VM Events");
+                    println!("--------------");
+                    for event in &events {
+                        println!("{:#?}", event);
+                    };
                     std::process::exit(0);
                 },
 

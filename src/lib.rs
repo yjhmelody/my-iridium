@@ -1,6 +1,8 @@
 extern crate byteorder;
 #[macro_use]
 extern crate nom;
+extern crate uuid;
+extern crate chrono;
 
 
 pub mod assembler;

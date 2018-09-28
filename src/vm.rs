@@ -2,7 +2,8 @@ use assembler::PIE_HEADER_PREFIX;
 use instruction::Opcode;
 use scheduler::Scheduler;
 use std;
-
+use uuid::Uuid;
+use chrono::prelude::*;
 
 /// Virtual machine struct that will execute bytecode
 #[derive(Default, Clone)]
@@ -20,8 +21,27 @@ pub struct VM {
     /// Contains the result of the last comparison operation
     equal_flag: bool,
     /// Contains the read-only section data
-    ro_data: Vec<u8>
+    ro_data: Vec<u8>,
+    /// Is a unique, randomly generated UUID for identifying this VM
+    id: Uuid,
+    /// VMEvent recivie events
+    events: Vec<VMEvent>,
 }
+
+#[derive(Debug, Clone)]
+pub enum VMEventType {
+    Start,
+    GracefulStop {code: u32},
+    Crash {code: u32},
+}
+#[derive(Debug, Clone)]
+
+pub struct VMEvent {
+    event: VMEventType,
+    at: DateTime<Utc>,
+    application_id: Uuid,
+}
+
 
 impl VM {
     /// Creates and returns a new VM
@@ -34,25 +54,45 @@ impl VM {
             pc: 0,
             remainder: 0,
             equal_flag: false,
-
+            id: Uuid::new_v4(),
+            events: Vec::new(),
         }
     }
 
     /// Wraps execution in a loop so it will continue to run until done or there is an error
     /// executing instructions.
-    pub fn run(&mut self) -> u32 {
+    pub fn run(&mut self) -> Vec<VMEvent> {
+        self.events.push(VMEvent{
+            event: VMEventType::Start,
+            at: Utc::now(),
+            application_id: self.id.clone(),
+        });
+        
         // TODO: Should setup custom errors here
         if !self.verify_header() {
+            self.events.push(VMEvent{
+                event: VMEventType::Crash{code:1},
+                at: Utc::now(),
+                application_id: self.id.clone(),
+            });
+
             println!("Header was incorrect");
-            return 1;
+            return self.events.clone();
         }
         // If the header is valid, we need to change the PC to be at bit 65.
         self.pc = 64;
-        let mut is_done = false;
-        while !is_done {
+        let mut is_done = None;
+        while is_done.is_none() {
             is_done = self.execute_instruction();
         }
-        0
+
+        self.events.push(VMEvent {
+            event: VMEventType::GracefulStop{code: is_done.unwrap()},
+            at: Utc::now(),
+            application_id: self.id.clone(),
+        });
+
+        self.events.clone()
     }
 
     /// Executes one instruction. Meant to allow for more controlled execution of the VM
@@ -72,9 +112,9 @@ impl VM {
 
     /// Executes an instruction and returns a bool. Meant to be called by the various public run
     /// functions.
-    fn execute_instruction(&mut self) -> bool {
+    fn execute_instruction(&mut self) -> Option<u32> {
         if self.pc >= self.program.len() {
-            return true;
+            return Some(1);
         }
         match self.decode_opcode() {
             Opcode::LOAD => {
@@ -105,7 +145,7 @@ impl VM {
             }
             Opcode::HLT => {
                 println!("HLT encountered");
-                return true;
+                return Some(0);
             }
             Opcode::JMP => {
                 let target = self.registers[self.next_8_bits() as usize];
@@ -213,10 +253,11 @@ impl VM {
 
             Opcode::IGL => {
                 println!("Illegal instruction encountered");
-                return true;
+                return Some(1);
             }
         };
-        false
+        
+        None
     }
 
     /// Attempts to decode the byte the VM's program counter is pointing at into an opcode

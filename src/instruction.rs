@@ -1,5 +1,6 @@
 use nom::types::CompleteStr;
 
+/// VM's Opcode
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Opcode {
     /// Load data to register
