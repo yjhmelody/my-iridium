@@ -1,9 +1,8 @@
 use assembler::PIE_HEADER_PREFIX;
+use chrono::prelude::*;
 use instruction::Opcode;
-use scheduler::Scheduler;
 use std;
 use uuid::Uuid;
-use chrono::prelude::*;
 
 /// Virtual machine struct that will execute bytecode
 #[derive(Default, Clone)]
