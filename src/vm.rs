@@ -295,10 +295,10 @@ mod tests {
     use super::*;
 
     fn get_test_vm() -> VM {
-        let mut test_vm = VM::new();
-        test_vm.registers[0] = 5;
-        test_vm.registers[1] = 10;
-        test_vm
+        let mut vm = VM::new();
+        vm.registers[0] = 5;
+        vm.registers[1] = 10;
+        vm
     }
 
     fn prepend_header(mut b: Vec<u8>) -> Vec<u8> {

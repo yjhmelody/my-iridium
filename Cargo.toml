@@ -3,6 +3,9 @@ name = "my-iridium"
 version = "0.1.0"
 authors = ["yjhmelody <465402634@qq.com>"]
 
+[[bin]]
+name = "my-iridium"
+
 [dependencies]
 nom = "^4.0"
 clap = {version = "2.32", features = ["yaml"]}
@@ -12,5 +15,9 @@ byteorder = "1"
 uuid = { version = "0.7", features = ["v4"] }
 chrono = "0.4"
 
-[[bin]]
+[dev-dependencies]
+criterion = "0.2"
+
+[[bench]]
 name = "my-iridium"
+harness = false

@@ -15,7 +15,7 @@ pub mod label_parsers;
 pub mod symbols;
 pub mod errors;
 
-pub const PIE_HEADER_PREFIX: [u8; 4] = [45, 50, 49, 45];
+pub const PIE_HEADER_PREFIX: [u8; 4] = [0x45, 0x50, 0x49, 0x45];
 pub const PIE_HEADER_LENGTH: usize = 64;
 
 
