@@ -2,6 +2,7 @@ use assembler::errors::AssemblerError;
 use assembler::instruction_parsers::AssemblerInstruction;
 use assembler::program_parsers::*;
 use assembler::symbols::*;
+use byteorder::{LittleEndian, WriteBytesExt};
 use instruction::Opcode;
 use nom::types::CompleteStr;
 
@@ -55,6 +56,7 @@ pub struct Assembler {
 pub type AssemblerResult = Result<Vec<u8>, Vec<AssemblerError>>;
 
 impl Assembler {
+    /// Creates a assembler to deal with asm
     pub fn new() -> Self {
         Self {
             phase: AssemblerPhase::First,
@@ -69,24 +71,35 @@ impl Assembler {
         }
     }
 
+    /// write a fixed header to instructions vec
     fn write_pie_header(&self) -> Vec<u8> {
         let mut header = vec![];
         for byte in PIE_HEADER_PREFIX.iter() {
             header.push(byte.clone());
         }
-        while header.len() <= PIE_HEADER_LENGTH {
+        // Now we need to calculate the starting offset so that the
+        // VM knows where the `read-only section` ends
+        let mut wtr: Vec<u8> = vec![];
+
+        // Write the length of the read-only section to the vector and convert it to a u32
+        // This is important because byteorder crate will pad with zeros as needed
+        wtr.write_u32::<LittleEndian>(self.ro.len() as u32).unwrap();
+
+        // Append those 4 bytes to the header directly after the first four bytes
+        header.append(&mut wtr);
+
+        while header.len() < PIE_HEADER_LENGTH {
             header.push(0 as u8);
         }
 
         header
     }
 
+    /// assemble asm to instructions
     pub fn assemble(&mut self, raw: &str) -> AssemblerResult {
         match parse_program(CompleteStr(raw)) {
             Ok((_remainder, program)) => {
                 // todo: add a check for `remainder` which should be ""
-                // write header
-                let mut assembled_program = self.write_pie_header();
 
                 // Start processing the AssembledInstructions. This is the first pass of our two-pass assembler.
                 // We pass a read-only reference down to another function.
@@ -106,7 +119,8 @@ impl Assembler {
 
                 // second pass which translates opcodes and operands into the bytecode
                 let mut body = self.process_second_phase(&program);
-                // add header
+                // write header after second pass
+                let mut assembled_program = self.write_pie_header();
                 assembled_program.append(&mut body);
                 Ok(assembled_program)
             },
@@ -293,4 +307,117 @@ mod tests {
     #![allow(unused_imports)]
 
     use super::*;
+    use vm::VM;
+
+    #[test]
+    /// Tests assembly a small but correct program
+    fn test_assemble_program() {
+        let mut asm = Assembler::new();
+        let test_string = r"
+        .data
+        .code
+        load $0 #100
+        load $1 #1
+        load $2 #0
+        test: inc $0
+        neq $0 $2
+        jmpe @test
+        hlt
+        ";
+        let program = asm.assemble(test_string).unwrap();
+        let mut vm = VM::new();
+        assert_eq!(program.len(), 92);
+        vm.add_bytes(program);
+        assert_eq!(vm.program.len(), 92);
+    }
+
+    #[test]
+    /// Simple test of data that goes into the read only section
+    fn test_code_start_offset_written() {
+        let mut asm = Assembler::new();
+        let test_string = r"
+        .data
+        test1: .asciiz 'Hello'
+        .code
+        load $0 #100
+        load $1 #1
+        load $2 #0
+        test: inc $0
+        neq $0 $2
+        jmpe @test
+        hlt
+        ";
+        let program = asm.assemble(test_string);
+        assert_eq!(program.is_ok(), true);
+        let unwrapped = program.unwrap();
+        assert_eq!(unwrapped[4], 6);
+    }
+
+    #[test]
+    /// Tests that we can add things to the symbol table
+    fn test_symbol_table() {
+        let mut sym = SymbolTable::new();
+        let new_symbol = Symbol::new_with_offset("test".to_string(), SymbolType::Label, 12);
+        sym.add_symbol(new_symbol);
+        assert_eq!(sym.symbols.len(), 1);
+        let v = sym.symbol_value("test");
+        assert_eq!(true, v.is_some());
+        let v = v.unwrap();
+        assert_eq!(v, 12);
+        let v = sym.symbol_value("does_not_exist");
+        assert_eq!(v.is_some(), false);
+    }
+
+    #[test]
+    /// Simple test of data that goes into the read only section
+    fn test_ro_data() {
+        let mut asm = Assembler::new();
+        let test_string = r"
+        .data
+        test: .asciiz 'This is a test'
+        .code
+        ";
+        let program = asm.assemble(test_string);
+        assert_eq!(program.is_ok(), true);
+    }
+
+    #[test]
+    /// This tests that a section name that isn't `code` or `data` throws an error
+    fn test_bad_ro_data() {
+        let mut asm = Assembler::new();
+        let test_string = r"
+        .code
+        test: .asciiz 'This is a test'
+        .wrong
+        ";
+        let program = asm.assemble(test_string);
+        assert_eq!(program.is_ok(), false);
+    }
+
+    #[test]
+    /// Tests that code which does not declare a segment first does not work
+    fn test_first_phase_no_segment() {
+        let mut asm = Assembler::new();
+        let test_string = "hello: .asciiz 'Fail'";
+        let result = parse_program(CompleteStr(test_string));
+        assert_eq!(result.is_ok(), true);
+        let (_, p) = result.unwrap();
+        asm.process_first_phase(&p);
+        assert_eq!(asm.errors.len(), 1);
+    }
+
+    #[test]
+    /// Tests that code inside a proper segment works
+    fn test_first_phase_inside_segment() {
+        let mut asm = Assembler::new();
+        let test_string = r"
+        .data
+        test: .asciiz 'Hello'
+        ";
+        let result = parse_program(CompleteStr(test_string));
+        assert_eq!(result.is_ok(), true);
+        let (_, p) = result.unwrap();
+        asm.process_first_phase(&p);
+        assert_eq!(asm.errors.len(), 0);
+    }
 }

@@ -31,4 +31,10 @@
  
 ## 验证首部
 
-首部 4 bytes 为`EPIE` 0x45, 0x50, 0x49, 0x45，接下来 60 bytes 保留。
+### Magical Number
+
+首部起始处 4 bytes 为`EPIE` 0x45, 0x50, 0x49, 0x45，接下来 60 bytes 保留。
+
+### 只读段
+
+只读段的长度紧接在魔数后 4 bytes, 表示只读段的长度.

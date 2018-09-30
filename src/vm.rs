@@ -1,7 +1,9 @@
 use assembler::PIE_HEADER_PREFIX;
+use byteorder::{LittleEndian, ReadBytesExt};
 use chrono::prelude::*;
 use instruction::Opcode;
 use std;
+use std::io::Cursor;
 use uuid::Uuid;
 
 /// Virtual machine struct that will execute bytecode
@@ -79,7 +81,7 @@ impl VM {
             return self.events.clone();
         }
         // If the header is valid, we need to change the PC to be at bit 65.
-        self.pc = 64;
+        self.pc = 64 + self.get_starting_offset();
         let mut is_done = None;
         while is_done.is_none() {
             is_done = self.execute_instruction();
@@ -286,6 +288,12 @@ impl VM {
             return false;
         }
         true
+    }
+
+    // read 4 bytes after magical number
+    fn get_starting_offset(&self) -> usize {
+        let mut rdr = Cursor::new(&self.program[4..8]);
+        rdr.read_u32::<LittleEndian>().unwrap() as usize
     }
 }
 

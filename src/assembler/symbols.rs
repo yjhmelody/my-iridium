@@ -96,7 +96,11 @@ mod tests {
     #[test]
     fn test_symbol_table() {
         let mut sym = SymbolTable::new();
-        let new_symbol = Symbol::new_with_offset("test".to_string(), SymbolType::Label, 12);
+        let new_symbol = Symbol::new_with_offset(
+            "test".to_string(),
+            SymbolType::Label,
+            12,
+        );
         sym.add_symbol(new_symbol);
         assert_eq!(sym.symbols.len(), 1);
         let v = sym.symbol_value("test");
