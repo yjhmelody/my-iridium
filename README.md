@@ -46,31 +46,29 @@ hello: .asciiz 'Hello'
 
 ## REPL
 
+详见 `repl` 和 `bin`
 
 ## 汇编器
 
+详见 `assembler`
 
 ## 字符串
 
-### UTF-8
+### UTF-8 说明
 
 - 0xxx xxxx    A single-byte US-ASCII code (from the first 127 characters)
 - 110x xxxx    One more byte follows
 - 1110 xxxx    Two more bytes follow
 - 1111 0xxx    Three more bytes follow
 
-
 ## 符号表
-
-
-## 命令行
-
 
 ## 并发并行
 
 基本原理：创建新的系统线程，并传递新的`VM`，让它执行`vm.run()`直到返回。就像linux一样，给每个线程设置自己的PID。
 
-## 测试
+## 基准测试
 
+对 VM 的一些指令的性能做最基本的测试
 
 ## 远程登录
