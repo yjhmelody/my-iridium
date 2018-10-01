@@ -1,32 +1,44 @@
-extern crate byteorder;
 #[macro_use]
 extern crate clap;
-#[macro_use]
-extern crate nom;
-extern crate uuid;
-extern crate chrono;
+extern crate my_iridium;
+extern crate num_cpus;
 
 use clap::App;
+use my_iridium::assembler;
+use my_iridium::repl;
+use my_iridium::vm;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::Read;
 use std::path::Path;
-
-pub mod assembler;
-pub mod instruction;
-pub mod repl;
-pub mod vm;
-pub mod scheduler;
+use std::process;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
-    let target_file = matches.value_of("INPUT_FILE");
 
-    match target_file {
+    let num_threads = match matches.value_of("THREADS") {
+        Some(number) => {
+            match number.parse::<usize>() {
+                Ok(v) => { v },
+                Err(_e) => {
+                    println!("Invalid argument for number of threads: {}. Using default", number);
+                    num_cpus::get()
+                },
+            }
+        }
+
+        None => {
+            num_cpus::get()
+        }
+    };
+
+
+    match matches.value_of("INPUT_FILE") {
         Some(filename) => {
             let program = read_file(filename);
             let mut asm = assembler::Assembler::new();
             let mut vm = vm::VM::new();
+            vm.logical_cores = num_threads;
             let program = asm.assemble(&program);
 
             match program {
@@ -38,7 +50,7 @@ fn main() {
                     for event in &events {
                         println!("{:#?}", event);
                     };
-                    std::process::exit(0);
+                    process::exit(0);
                 },
 
                 Err(e) => {

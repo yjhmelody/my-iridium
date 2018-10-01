@@ -2,6 +2,7 @@ use assembler::PIE_HEADER_PREFIX;
 use byteorder::{LittleEndian, ReadBytesExt};
 use chrono::prelude::*;
 use instruction::Opcode;
+use num_cpus;
 use std;
 use std::io::Cursor;
 use uuid::Uuid;
@@ -27,6 +28,7 @@ pub struct VM {
     id: Uuid,
     /// VMEvent recivie events
     events: Vec<VMEvent>,
+    pub logical_cores: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -57,6 +59,7 @@ impl VM {
             equal_flag: false,
             id: Uuid::new_v4(),
             events: Vec::new(),
+            logical_cores: num_cpus::get(),
         }
     }
 
