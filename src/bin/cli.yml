@@ -13,3 +13,21 @@ args:
     takes_value: true
     long: threads
     short: t
+- ENABLE_REMOTE_ACCESS:
+    help: Enables the remote server component of VM
+    required: false
+    takes_value: false
+    long: enable-remote-access
+    short: r
+- LISTEN_PORT:
+    help: Which port Iridium should listen for remote connections on. Defaults to 2244.
+    required: false
+    takes_value: true
+    long: bind-port
+    short: p
+- LISTEN_HOST:
+    help: Which address Iridium should listen for remote connections on. Defaults to "127.0.0.1".
+    required: false
+    takes_value: true
+    long: bind-host
+    short: h
