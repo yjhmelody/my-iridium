@@ -1,20 +1,45 @@
+extern crate byteorder;
 #[macro_use]
 extern crate clap;
+extern crate env_logger;
+#[macro_use]
+extern crate log;
 extern crate my_iridium;
 extern crate num_cpus;
+extern crate uuid;
 
 use clap::App;
 use my_iridium::assembler;
-use my_iridium::repl;
+use my_iridium::repl::REPL;
 use my_iridium::vm;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 use std::process;
+use std::sync::mpsc::{Receiver, Sender};
+use std::thread;
 
 fn main() {
+    env_logger::init();
+    info!("Starting logging!");
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
+
+    let data_root_dir = matches
+        .value_of("DATA_ROOT_DIR")
+        .unwrap_or("/var/lib/iridium");
+
+    if make_directory(data_root_dir).is_err() {
+        println!("There was an error creating the default root data directory");
+        std::process::exit(1);
+    }
+
+    if matches.is_present("ENABLE_REMOTE_ACCESS") {
+        // defaults to 127.0.0.1:2244
+        let port = matches.value_of("LISTEN_PORT").unwrap_or("2244");
+        let host = matches.value_of("LISTEN_HOST").unwrap_or("127.0.0.1");
+        start_remote_server(host.to_string(), port.to_string());
+    }
 
     let num_threads = match matches.value_of("THREADS") {
         Some(number) => {
@@ -27,11 +52,8 @@ fn main() {
             }
         }
 
-        None => {
-            num_cpus::get()
-        }
+        None => num_cpus::get()
     };
-
 
     match matches.value_of("INPUT_FILE") {
         Some(filename) => {
@@ -58,12 +80,33 @@ fn main() {
                 },
             }
         },
-        None => { start_repl(); },
+        None => {
+            let mut repl = REPL::new();
+            let mut rx = repl.rx_pipe.take();
+            thread::spawn(move || {
+                let chan = rx.unwrap();
+                loop {
+                    match chan.recv() {
+                        Ok(msg) => println!("{}", msg),
+                        Err(_e) => {},
+                    }
+                }
+            });
+            repl.run();
+        },
     }
 }
 
+
+fn start_remote_server(host: String, port: String) {
+    std::thread::spawn(move || {
+        let mut sh = my_iridium::remote::server::Server::new(host, port);
+        sh.listen();
+    });
+}
+
 fn start_repl() {
-    let mut repl = repl::REPL::new();
+    let mut repl = REPL::new();
     repl.run();
 }
 
@@ -87,3 +130,10 @@ fn read_file(path: &str) -> String {
         }
     }
 }
+
+fn make_directory(dir: &str) -> std::io::Result<()> {
+    std::fs::create_dir_all(dir)?;
+    Ok(())
+}
+
+

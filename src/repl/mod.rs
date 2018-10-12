@@ -1,5 +1,6 @@
 use assembler::Assembler;
 use assembler::program_parsers::parse_program;
+use nom::types::CompleteStr;
 use repl::command_parser::CommandParser;
 use scheduler::Scheduler;
 use std;
@@ -9,11 +10,16 @@ use std::io::prelude::*;
 use std::io::Write;
 use std::num::ParseIntError;
 use std::path::Path;
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc;
 use std::u8;
 use vm::VM;
 
 pub mod command_parser;
 
+pub static REMOTE_BANNER: &'static str = "Welcome to Iridium! Let's be productive!";
+pub static PROMPT: &'static str = ">>> ";
+const COMMAND_PREFIX: char = '!';
 
 /// Core structure for the REPL for the Assembler
 pub struct REPL {
@@ -21,6 +27,8 @@ pub struct REPL {
     vm: VM,
     asm: Assembler,
     scheduler: Scheduler,
+    pub tx_pipe: Option<Box<Sender<String>>>,
+    pub rx_pipe: Option<Box<Receiver<String>>>,
 }
 
 impl Default for REPL {
@@ -32,17 +40,20 @@ impl Default for REPL {
 impl REPL {
     /// Creates a REPL
     pub fn new() -> Self {
+        let (tx, rx) = mpsc::channel();
         Self {
             command_buffer: Vec::new(),
             vm: VM::new(),
             asm: Assembler::new(),
             scheduler: Scheduler::new(),
+            tx_pipe: Some(Box::new(tx)),
+            rx_pipe: Some(Box::new(rx)),
         }
     }
 
     /// Runs the repl
     pub fn run(&mut self) {
-        println!("Welcome to Iridium!");
+        self.send_message(REMOTE_BANNER.to_string());
         loop {
             let mut buffer = String::new();
             // Block call
@@ -58,12 +69,13 @@ impl REPL {
             let buffer = buffer.trim();
             // commands are start with `!`
             if buffer.starts_with("!") {
-                self.excute_command(&buffer);
+                self.execute_command(&buffer);
             } else {
                 let program = match parse_program(buffer.into()) {
                     Ok((_, program)) => program,
                     Err(e) => {
-                        println!("Unable to parse input {:?}", e);
+                        self.send_message(REMOTE_BANNER.to_string());
+                        self.send_prompt();
                         continue;
                     }
                 };
@@ -72,6 +84,55 @@ impl REPL {
                     .append(&mut program.to_bytes(&self.asm.symbols));
                 self.vm.run_once();
             }
+        }
+    }
+
+    /// Sends single cmd to remote
+    pub fn run_single(&mut self, buf: &str) -> Option<String> {
+        if buf.starts_with(COMMAND_PREFIX) {
+            self.execute_command(&buf);
+            None
+        } else {
+            let program = match parse_program(CompleteStr(buf)) {
+                Ok((_remainder, program)) => Some(program),
+                Err(err) => {
+                    self.send_message(format!("Unable to parse input: {:?}", err));
+                    self.send_prompt();
+                    None
+                }
+            };
+
+            program.map(|p| {
+                let mut bytes = p.to_bytes(&self.asm.symbols);
+                self.vm.program.append(&mut bytes);
+                self.vm.run_once();
+                p
+            });
+            None
+        }
+    }
+
+    /// Sends message to remote
+    pub fn send_message(&mut self, msg: String) {
+        match &self.tx_pipe {
+            Some(pipe) => {
+                match pipe.send(msg) {
+                    Ok(_) => {}
+                    Err(_e) => {}
+                };
+            }
+            None => {}
+        }
+    }
+
+    /// Sends prompt to remote
+    pub fn send_prompt(&mut self) {
+        match &self.tx_pipe {
+            Some(pipe) => match pipe.send(PROMPT.to_owned()) {
+                Ok(_) => {}
+                Err(_e) => {}
+            },
+            None => {}
         }
     }
 
@@ -96,7 +157,8 @@ impl REPL {
         Ok(results)
     }
 
-    fn excute_command(&mut self, input: &str) {
+    /// Execute a command which starts with `!`
+    fn execute_command(&mut self, input: &str) {
         let args = CommandParser::tokenize(input);
         match args[0] {
             "!quit" => self.quit(&args[1..]),
@@ -108,12 +170,15 @@ impl REPL {
             "!symbols" => self.symbols(&args[1..]),
             "!load_file" => self.load_file(&args[1..]),
             "!spawn" => self.spawn(&args[1..]),
-            _ => { println!("Invalid command!") }
+            _ => {
+                self.send_message("Invalid command!".to_string());
+                self.send_prompt();
+            }
         };
     }
 
     fn quit(&mut self, _args: &[&str]) {
-        println!("Farewell!");
+        self.send_message("Farewell! Have a great day!".to_string());
         std::process::exit(0);
     }
 
@@ -122,14 +187,19 @@ impl REPL {
         for command in &self.command_buffer {
             results.push(command.clone());
         }
+        self.send_message(format!("{:#?}", results));
+        self.send_prompt();
     }
 
     fn program(&mut self, _args: &[&str]) {
+        self.send_message("Listing instructions currently in VM's program vector: ".to_string());
         let mut results = vec![];
         for instruction in &self.vm.program {
             results.push(instruction.clone())
         }
-        println!("End of Program Listing");
+        self.send_message(format!("{:#?}", results));
+        self.send_message("End of Program Listing".to_string());
+        self.send_prompt();
     }
 
     fn clear_program(&mut self, _args: &[&str]) {
@@ -137,24 +207,35 @@ impl REPL {
     }
 
     fn clear_registers(&mut self, _args: &[&str]) {
-        println!("Setting all registers to 0");
+        self.send_message("Setting all registers to 0".to_string());
         for i in 0..self.vm.registers.len() {
             self.vm.registers[i] = 0;
         }
-        println!("Done!");
+        self.send_message("Done!".to_string());
+        self.send_prompt();
     }
 
-    fn registers(&self, _args: &[&str]) {
-        println!("Listing registers and all contents:");
-        println!("{:#?}", self.vm.registers);
-        println!("End of Register Listing")
+    fn registers(&mut self, _args: &[&str]) {
+        self.send_message("Listing registers and all contents:".to_string());
+        let mut results = vec![];
+        for register in &self.vm.registers {
+            results.push(register.clone());
+        }
+        self.send_message(format!("{:#?}", results));
+        self.send_message("End of Register Listing".to_string());
+        self.send_prompt();
     }
 
 
-    fn symbols(&self, _args: &[&str]) {
-        println!("Listing symbols table:");
-        println!("{:#?}", self.asm.symbols);
-        println!("End of Symbols Listing");
+    fn symbols(&mut self, _args: &[&str]) {
+//        let mut results = vec![];
+//        for symbol in &self.asm.symbols.symbols {
+//            results.push(symbol.clone());
+//        }
+//        self.send_message("Listing symbols table:".to_string());
+//        self.send_message(format!("{:#?}", results));
+//        self.send_message("End of Symbols Listing".to_string());
+//        self.send_prompt();
     }
 
     fn load_file(&mut self, _args: &[&str]) {
@@ -162,14 +243,14 @@ impl REPL {
         if let Some(contents) = contents {
             match self.asm.assemble(&contents) {
                 Ok(mut program) => {
-                    println!("Sending assembled program to VM");
+                    self.send_message("Sending assembled program to VM".to_string());
                     self.vm.program.append(&mut program);
-                    println!("{:#?}", self.vm.program);
                     self.vm.run();
                 },
                 Err(errs) => {
                     for err in errs {
-                        println!("Unable to parse input: {}", err);
+                        self.send_message(format!("Unable to parse input: {}", err));
+                        self.send_prompt();
                     }
                     return;
                 }
@@ -181,18 +262,18 @@ impl REPL {
 
     fn spawn(&mut self, _args: &[&str]) {
         let contents = self.get_data_from_load();
-        println!("Loaded contents: {:#?}", contents);
+        self.send_message(format!("Loaded contents: {:#?}", contents));
         if let Some(contents) = contents {
             match self.asm.assemble(&contents) {
                 Ok(mut program) => {
-                    println!("Sending assembled program to VM");
+                    self.send_message("Sending assembled program to VM".to_string());
                     self.vm.program.append(&mut program);
-                    println!("{:#?}", self.vm.program);
                     self.scheduler.get_thread(self.vm.clone());
                 },
                 Err(errs) => {
                     for err in errs {
-                        println!("Unable to parse input: {}", err);
+                        self.send_message(format!("Unable to parse input: {}", err));
+                        self.send_prompt();
                     }
                     return;
                 }
@@ -204,21 +285,20 @@ impl REPL {
 
     fn get_data_from_load(&mut self) -> Option<String> {
         let stdin = io::stdin();
-        print!("Please enter the path to the file you wish to load: ");
-        io::stdout().flush().expect("Unable to flush stdout");
+        self.send_message("Please enter the path to the file you wish to load: ".to_string());
 
         let mut tmp = String::new();
         stdin
             .read_line(&mut tmp)
             .expect("Unable to read line from user");
-        println!("Attempting to load program from file...");
+        self.send_message("Attempting to load program from file...".to_string());
 
         let tmp = tmp.trim();
         let filename = Path::new(&tmp);
         let mut f = match File::open(&filename) {
             Ok(f) => f,
             Err(e) => {
-                println!("There was an error opening that file: {:?}", e);
+                self.send_message(format!("There was an error opening that file: {:?}", e));
                 return None;
             }
         };
@@ -226,7 +306,7 @@ impl REPL {
         match f.read_to_string(&mut contents) {
             Ok(_bytes_read) => Some(contents),
             Err(e) => {
-                println!("there was an error reading that file: {:?}", e);
+                self.send_message(format!("there was an error reading that file: {:?}", e));
                 None
             }
         }

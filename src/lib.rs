@@ -11,3 +11,4 @@ pub mod instruction;
 pub mod repl;
 pub mod vm;
 pub mod scheduler;
+pub mod remote;
