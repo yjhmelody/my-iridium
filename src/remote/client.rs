@@ -70,6 +70,7 @@ impl Client {
         });
     }
 
+    /// Runs the client to connect the remote
     pub fn run(&mut self) {
         self.recv_loop();
         let mut buf = String::new();

@@ -74,7 +74,7 @@ impl REPL {
                 let program = match parse_program(buffer.into()) {
                     Ok((_, program)) => program,
                     Err(e) => {
-                        self.send_message(REMOTE_BANNER.to_string());
+                        self.send_message(format!("Unable to parse input: {:?}", e));
                         self.send_prompt();
                         continue;
                     }
@@ -229,8 +229,8 @@ impl REPL {
 
     fn symbols(&mut self, _args: &[&str]) {
 //        let mut results = vec![];
-//        for symbol in &self.asm.symbols.symbols {
-//            results.push(symbol.clone());
+//        for symbol in self.asm.symbols.symbols {
+//            results.push(symbol);
 //        }
 //        self.send_message("Listing symbols table:".to_string());
 //        self.send_message(format!("{:#?}", results));
@@ -293,9 +293,8 @@ impl REPL {
             .expect("Unable to read line from user");
         self.send_message("Attempting to load program from file...".to_string());
 
-        let tmp = tmp.trim();
-        let filename = Path::new(&tmp);
-        let mut f = match File::open(&filename) {
+        let filename = Path::new(tmp.trim());
+        let mut f = match File::open(filename) {
             Ok(f) => f,
             Err(e) => {
                 self.send_message(format!("There was an error opening that file: {:?}", e));

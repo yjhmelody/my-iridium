@@ -9,6 +9,7 @@ pub struct Server {
 }
 
 impl Server {
+    /// Creates a server to deal with remote access
     pub fn new(hostname: String, port: String) -> Self {
         Self {
             hostname,
@@ -16,6 +17,7 @@ impl Server {
         }
     }
 
+    /// When anyone remote access, creates a new thread to deal with remote commands
     pub fn listen(&mut self) {
         println!("Initializing TCP server...");
         let listener = TcpListener::bind(self.hostname.clone() + ":" + &self.port).unwrap();
@@ -23,6 +25,7 @@ impl Server {
             let stream = stream.unwrap();
             thread::spawn(|| {
                 let mut client = Client::new(stream);
+                client.run();
             });
         }
     }

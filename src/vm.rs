@@ -28,6 +28,7 @@ pub struct VM {
     id: Uuid,
     /// VMEvent recivie events
     events: Vec<VMEvent>,
+    /// The core number of CPU
     pub logical_cores: usize,
 }
 
