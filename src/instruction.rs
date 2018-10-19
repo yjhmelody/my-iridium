@@ -5,7 +5,6 @@ use nom::types::CompleteStr;
 pub enum Opcode {
     /// Load data to register
     LOAD,
-
     /// Add src1 src2 dst
     ADD,
     /// Sub src1 src2 dst
@@ -54,6 +53,70 @@ pub enum Opcode {
     /// Illegal opcode
     IGL,
 
+    /// Float Operation
+    LOADF64,
+    ADDF64,
+    SUBF64,
+    MULF64,
+    DIVF64,
+    EQF64,
+    NEQF64,
+    GTF64,
+    GTEF64,
+    LTF64,
+    LTEF64,
+}
+
+
+impl From<Opcode> for u8 {
+    fn from(op: Opcode) -> Self {
+        use self::Opcode::*;
+        match op {
+            LOAD => 0,
+
+            ADD => 1,
+            SUB => 2,
+            MUL => 3,
+            DIV => 4,
+
+            HLT => 5,
+
+            JMP => 6,
+            JMPF => 7,
+            JMPB => 8,
+
+            EQ => 9,
+            NEQ => 10,
+            GT => 11,
+            LT => 12,
+            GTE => 13,
+            LTE => 14,
+            JMPE => 15,
+
+            NOP => 16,
+            ALOC => 17,
+
+            INC => 18,
+            DEC => 19,
+
+            DJMPE => 20,
+            PRTS => 21,
+
+            LOADF64 => 22,
+            ADDF64 => 23,
+            SUBF64 => 24,
+            MULF64 => 25,
+            DIVF64 => 26,
+            EQF64 => 27,
+            NEQF64 => 28,
+            GTF64 => 29,
+            GTEF64 => 30,
+            LTF64 => 31,
+            LTEF64 => 32,
+
+            IGL => 100,
+        }
+    }
 }
 
 /// Converts from a u8 to an Opcode
@@ -62,7 +125,6 @@ impl From<u8> for Opcode {
         use self::Opcode::*;
         match v {
             0 => LOAD,
-
             1 => ADD,
             2 => SUB,
             3 => MUL,
@@ -90,6 +152,19 @@ impl From<u8> for Opcode {
 
             20 => DJMPE,
             21 => PRTS,
+
+            22 => LOADF64,
+            23 => ADDF64,
+            24 => SUBF64,
+            25 => MULF64,
+            26 => DIVF64,
+            27 => EQF64,
+            28 => NEQF64,
+            29 => GTF64,
+            30 => GTEF64,
+            31 => LTF64,
+            32 => LTEF64,
+
             _ => IGL,
         }
     }
@@ -120,6 +195,17 @@ impl<'a> From<CompleteStr<'a>> for Opcode {
             CompleteStr("dec") => Opcode::DEC,
             CompleteStr("djmpe") => Opcode::DJMPE,
             CompleteStr("prts") => Opcode::PRTS,
+            CompleteStr("loadf64") => Opcode::LOADF64,
+            CompleteStr("addf64") => Opcode::ADDF64,
+            CompleteStr("subf64") => Opcode::SUBF64,
+            CompleteStr("mulf64") => Opcode::MULF64,
+            CompleteStr("divf64") => Opcode::DIVF64,
+            CompleteStr("eqf64") => Opcode::EQF64,
+            CompleteStr("neqf64") => Opcode::NEQF64,
+            CompleteStr("gtf64") => Opcode::GTF64,
+            CompleteStr("gtef64") => Opcode::GTEF64,
+            CompleteStr("ltf64") => Opcode::LTF64,
+            CompleteStr("ltef64") => Opcode::LTEF64,
             _ => Opcode::IGL,
         }
     }

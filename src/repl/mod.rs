@@ -226,11 +226,11 @@ impl REPL {
         self.send_prompt();
     }
 
-
     fn symbols(&mut self, _args: &[&str]) {
+//        todo: fix it
 //        let mut results = vec![];
-//        for symbol in self.asm.symbols.symbols {
-//            results.push(symbol);
+//        for symbol in &self.asm.symbols.symbols {
+//            results.push(symbol.clone());
 //        }
 //        self.send_message("Listing symbols table:".to_string());
 //        self.send_message(format!("{:#?}", results));

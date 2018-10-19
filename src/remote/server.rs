@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 use remote::client::Client;
 use std::io::BufReader;
 use std::net::TcpListener;

@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 use repl;
 use std::io::{BufRead, Read, Write};
 use std::io::{BufReader, BufWriter};

@@ -65,6 +65,10 @@ impl AssemblerInstruction {
                 results.push(byte1 as u8);
             }
 
+            Token::FloatOperand { value } => {
+                unimplemented!();
+            }
+
             Token::LabelUsage { name } => {
                 if let Some(value) = symbols.symbol_value(name) {
                     let byte1 = value;
@@ -142,7 +146,7 @@ impl AssemblerInstruction {
 
 named!(parse_instruction_combined<CompleteStr, AssemblerInstruction>,
     do_parse!(
-        l: opt!(parse_label_decl) >>
+        label: opt!(parse_label_decl) >>
         o: parse_opcode >>
         operand1: opt!(parse_operand) >>
         operand2: opt!(parse_operand) >>
@@ -150,7 +154,7 @@ named!(parse_instruction_combined<CompleteStr, AssemblerInstruction>,
         (
             AssemblerInstruction {
                 opcode: Some(o),
-                label: l,
+                label,
                 directive: None,
                 operand1,
                 operand2,

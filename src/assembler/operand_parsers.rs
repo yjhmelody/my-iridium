@@ -8,8 +8,9 @@ use nom::types::CompleteStr;
 named!(pub parse_operand<CompleteStr, Token>,
     alt!(
         parse_integer_operand |
-        parse_register |
+        parse_float_operand |
         parse_label_usage |
+        parse_register |
         parse_irstring
     )
 );
@@ -39,6 +40,29 @@ named!(parse_irstring<CompleteStr, Token>,
     )
 );
 
+named!(parse_float_operand<CompleteStr, Token>,
+    ws!(
+        do_parse!(
+            tag!("#") >>
+            sign: opt!(tag!("-")) >>
+            left_nums: digit >>
+            tag!(".") >>
+            right_nums: digit >>
+            (
+                {
+                    let mut num = String::from("");
+                    if sign.is_some() {
+                        num.push_str("-");
+                    }
+                    num.push_str(&left_nums.to_string());
+                    num.push_str(".");
+                    num.push_str(&right_nums.to_string());
+                    Token::FloatOperand{value: num.parse::<f64>().unwrap()}
+                }
+            )
+        )
+    )
+);
 
 #[cfg(test)]
 mod tests {
@@ -65,5 +89,13 @@ mod tests {
 
         let result = parse_irstring(CompleteStr("\"This is a test\""));
         assert_eq!(result.is_ok(), false);
+    }
+
+    #[test]
+    fn test_parse_float_operand() {
+        let test = vec!["#100.3", "#-100.3", "#1.0", "#0.0"];
+        for i in &test {
+            assert_eq!(parse_float_operand(CompleteStr(i)).is_ok(), true);
+        }
     }
 }
