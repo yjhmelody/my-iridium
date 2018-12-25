@@ -1,7 +1,8 @@
 [package]
 name = "my-iridium"
-version = "0.1.0"
+version = "0.1.27"
 authors = ["yjhmelody <465402634@qq.com>"]
+edition = "2018"
 
 [dependencies]
 nom = "4.1"
